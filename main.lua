@@ -1,4 +1,1285 @@
--- created By Jawir Academy
--- iRyck
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-local a=loadstring(game:HttpGet('https://sirius.menu/rayfield'))()local b=game:GetService("Players")local c=game:GetService("UserInputService")local d=game:GetService("RunService")local e=b.LocalPlayer;local f={walk=16,jump=50,fly=false,flySpeed=20,antiFall=true,flyKey=Enum.KeyCode.F,uiToggle=Enum.KeyCode.K}local function g()return e.Character or e.CharacterAdded:Wait()end;local function h(i)i=i or g()return i:FindFirstChildOfClass("Humanoid")or i:FindFirstChild("Humanoid")or i:FindFirstChildWhichIsA("Humanoid",true)end;local function j(i)if not i then return nil end;local k=i:FindFirstChild("HumanoidRootPart")or i:FindFirstChild("LowerTorso")or i:FindFirstChild("Torso")if not k then k=i:WaitForChild("HumanoidRootPart",5)or i:FindFirstChild("LowerTorso")or i:FindFirstChild("Torso")end;return k or i:FindFirstChildWhichIsA("BasePart")end;local function l()local m=h()if m then m.UseJumpPower=true;m.WalkSpeed=f.walk;m.JumpPower=f.jump end end;local n=f.walk;local o=false;local p={enabled=false,conns={}}local function q()for r,s in ipairs(p.conns)do pcall(function()s:Disconnect()end)end;p.conns={}end;local function t()local m=h()if m then m:ChangeState(Enum.HumanoidStateType.Jumping)m.Jump=true end end;local function u()table.insert(p.conns,c.JumpRequest:Connect(function()t()end))table.insert(p.conns,c.InputBegan:Connect(function(v,w)if w then return end;if v.KeyCode==Enum.KeyCode.Space then t()end end))table.insert(p.conns,e.CharacterAdded:Connect(function()task.wait(0.2)if p.enabled then q()u()end end))end;local function x(y)if y==p.enabled then return end;p.enabled=y;q()if y then u()end;pcall(function()a:Notify({Title="Infinite Jump",Content=y and"Enabled"or"Disabled",Duration=1.25})end)end;local z={enabled=false,speed=f.flySpeed,verticalSpeed=f.flySpeed,conns={},bodyGyro=nil,bodyVel=nil,ascend=false,descend=false,lastJumpTime=0,dtapWindow=0.25,pulseTime=0.45}local function A()for r,s in ipairs(z.conns)do pcall(function()s:Disconnect()end)end;z.conns={}if z.bodyGyro then z.bodyGyro:Destroy()end;if z.bodyVel then z.bodyVel:Destroy()end;z.bodyGyro,z.bodyVel=nil,nil;z.ascend,z.descend=false,false end;local function B()local i=g()local k=j(i)if not k then return end;z.bodyGyro=Instance.new("BodyGyro")z.bodyGyro.P=9e4;z.bodyGyro.MaxTorque=Vector3.new(9e9,9e9,9e9)z.bodyGyro.CFrame=k.CFrame;z.bodyGyro.Parent=k;z.bodyVel=Instance.new("BodyVelocity")z.bodyVel.MaxForce=Vector3.new(9e9,9e9,9e9)z.bodyVel.Velocity=Vector3.zero;z.bodyVel.Parent=k;table.insert(z.conns,d.RenderStepped:Connect(function()local m=h()local C=j()if not m or not C or not z.bodyGyro or not z.bodyVel then return end;local D=m.MoveDirection*z.speed;local E=Vector3.zero;if z.ascend then E=Vector3.new(0,z.verticalSpeed,0)elseif z.descend then E=Vector3.new(0,-z.verticalSpeed,0)end;local F=workspace.CurrentCamera;if F then z.bodyGyro.CFrame=F.CFrame end;local G=D+E;if f.antiFall and not z.ascend and not z.descend and D.Magnitude<1e-3 then G=Vector3.new(0,0.05,0)end;z.bodyVel.Velocity=G end))local function H()local I=time()if I-z.lastJumpTime<=z.dtapWindow then z.lastJumpTime=0;z.ascend=false;z.descend=true;task.delay(z.pulseTime,function()if z.descend then z.descend=false end end)return end;z.lastJumpTime=I;z.descend=false;z.ascend=true;task.delay(z.pulseTime,function()if z.ascend then z.ascend=false end end)end;table.insert(z.conns,c.JumpRequest:Connect(function()if z.enabled then H()end end))table.insert(z.conns,e.CharacterAdded:Connect(function()if z.enabled then task.wait(0.2)A()B()end end))end;function setFly(y)if y==z.enabled then return end;z.enabled=y;A()if y then B()end;pcall(function()a:Notify({Title="Fly",Content=y and"Enabled"or"Disabled",Duration=1.25})end)end;local J={enabled=false,conns={},maxHP=9e9,hooks={}}local function K()for r,s in ipairs(J.conns)do pcall(function()s:Disconnect()end)end;J.conns={}J.hooks={}end;local function L(m)if not m then return end;pcall(function()m.BreakJointsOnDeath=false;m.MaxHealth=J.maxHP;m.Health=J.maxHP end)pcall(function()m:SetStateEnabled(Enum.HumanoidStateType.Dead,false)m:SetStateEnabled(Enum.HumanoidStateType.Ragdoll,false)m:SetStateEnabled(Enum.HumanoidStateType.FallingDown,false)end)if m.TakeDamage and not J.hooks["TakeDamage"]then pcall(function()J.hooks["TakeDamage"]=hookfunction(m.TakeDamage,function(...)if J.enabled then return end;return J.hooks["TakeDamage"](...)end)end)end;table.insert(J.conns,m.StateChanged:Connect(function(r,M)if J.enabled and M==Enum.HumanoidStateType.Dead then task.defer(function()pcall(function()m:ChangeState(Enum.HumanoidStateType.Running)m.Health=J.maxHP end)end)end end))table.insert(J.conns,m.HealthChanged:Connect(function(N)if J.enabled and N<J.maxHP then pcall(function()m.MaxHealth=J.maxHP;m.Health=J.maxHP end)end end))end;local function O()local i=e.Character or e.CharacterAdded:Wait()local m=i:FindFirstChildOfClass("Humanoid")or i:WaitForChild("Humanoid",5)L(m)table.insert(J.conns,e.CharacterAdded:Connect(function(P)K()if J.enabled then task.wait(0.2)local Q=P:FindFirstChildOfClass("Humanoid")or P:WaitForChild("Humanoid",5)L(Q)end end))end;function setGodMode(y,R)if y==J.enabled then return end;J.enabled=y;K()pcall(function()game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.Health,not R)end)if y then O()a:Notify({Title="God Mode",Content="Enabled",Duration=1.25})else a:Notify({Title="God Mode",Content="Disabled",Duration=1.25})end end;local S,T,U,V;local W;function setShowCoordinates(X)if X then if S then S.Enabled=true;return end;S=Instance.new("ScreenGui")S.Name="CoordGUI"S.ResetOnSpawn=false;S.Parent=e:WaitForChild("PlayerGui")T=Instance.new("Frame")T.Size=UDim2.new(0,250,0,100)T.Position=UDim2.new(0,20,0,100)T.BackgroundColor3=Color3.fromRGB(40,40,40)T.BackgroundTransparency=0.2;T.Parent=S;U=Instance.new("TextLabel")U.Size=UDim2.new(1,-20,0,50)U.Position=UDim2.new(0,10,0,10)U.BackgroundTransparency=1;U.TextColor3=Color3.fromRGB(255,255,255)U.Font=Enum.Font.SourceSans;U.TextSize=20;U.Text="Koordinat: "U.TextXAlignment=Enum.TextXAlignment.Left;U.Parent=T;V=Instance.new("TextButton")V.Size=UDim2.new(0,80,0,30)V.Position=UDim2.new(0,10,0,60)V.BackgroundColor3=Color3.fromRGB(70,70,70)V.TextColor3=Color3.fromRGB(255,255,255)V.Font=Enum.Font.SourceSansBold;V.TextSize=18;V.Text="Copy"V.Parent=T;W=d.RenderStepped:Connect(function()local i=g()local k=j(i)if k and U then local Y=k.Position;U.Text=string.format("Koordinat: (%.1f, %.1f, %.1f)",Y.X,Y.Y,Y.Z)end end)V.MouseButton1Click:Connect(function()local i=g()local k=j(i)if k then local Y=k.Position;local Z=string.format("%.1f, %.1f, %.1f",Y.X,Y.Y,Y.Z)if setclipboard then setclipboard(Z)a:Notify({Title="Koordinat",Content="Berhasil dicopy: "..Z,Duration=1.25})end end end)else if S then S.Enabled=false end;if W then W:Disconnect()W=nil end end end;local _={enabled=false,conns={},speed=1}local a0,a1;local a2={forward=false,backward=false,left=false,right=false,up=false,down=false}local a3;local a4=10;local a5=5;local a6=5;local a7=100;local a8=10;local a9=3;local aa=0.33;local ab=0.5;local ac=false;local ad=false;local ae=false;local function af()for r,s in ipairs(_.conns)do pcall(function()s:Disconnect()end)end;_.conns={}if a0 then a0:Destroy()end;if a1 then a1:Destroy()end;a0,a1=nil,nil;a2={forward=false,backward=false,left=false,right=false,up=false,down=false}ac,ad,ae=false,false,false end;local function ag()local i=g()local k=j(i)if not k then return end;a0=Instance.new("BodyGyro")a0.P=9e4;a0.MaxTorque=Vector3.new(9e9,9e9,9e9)a0.CFrame=k.CFrame;a0.Parent=k;a1=Instance.new("BodyVelocity")a1.MaxForce=Vector3.new(9e9,9e9,9e9)a1.Velocity=Vector3.zero;a1.Parent=k;table.insert(_.conns,d.RenderStepped:Connect(function()local m=h()local C=j()if not m or not C or not a0 or not a1 then return end;local F=workspace.CurrentCamera;if F then a0.CFrame=F.CFrame end;local ah=1;if ac then ah=ah*a9 end;if ad then ah=ah*aa end;if ae then ah=ah*ab end;local ai=a4*ah;local aj=F and F.CFrame.LookVector or Vector3.new(0,0,-1)aj=Vector3.new(aj.X,0,aj.Z)if aj.Magnitude>0 then aj=aj.Unit else aj=Vector3.new(0,0,-1)end;local ak=F and F.CFrame.RightVector or Vector3.new(1,0,0)ak=Vector3.new(ak.X,0,ak.Z)if ak.Magnitude>0 then ak=ak.Unit else ak=Vector3.new(1,0,0)end;local D=Vector3.zero;if a2.forward then D=D+aj end;if a2.backward then D=D-aj end;if a2.right then D=D+ak end;if a2.left then D=D-ak end;D=D.Magnitude>0 and D.Unit*ai or Vector3.zero;local E=Vector3.zero;if a2.up then E=E+Vector3.new(0,1,0)end;if a2.down then E=E-Vector3.new(0,1,0)end;E=E.Magnitude>0 and E.Unit*ai or Vector3.zero;local G=D+E;a1.Velocity=G end))table.insert(_.conns,c.InputBegan:Connect(function(v,w)if w then return end;if v.KeyCode==Enum.KeyCode.W then a2.forward=true elseif v.KeyCode==Enum.KeyCode.S then a2.backward=true elseif v.KeyCode==Enum.KeyCode.A then a2.left=true elseif v.KeyCode==Enum.KeyCode.D then a2.right=true elseif v.KeyCode==Enum.KeyCode.E then a2.up=true elseif v.KeyCode==Enum.KeyCode.Q then a2.down=true elseif v.KeyCode==Enum.KeyCode.LeftShift then ac=true elseif v.KeyCode==Enum.KeyCode.LeftControl then ad=true elseif v.KeyCode==Enum.KeyCode.LeftAlt then ae=true end end))table.insert(_.conns,c.InputEnded:Connect(function(v,w)if w then return end;if v.KeyCode==Enum.KeyCode.W then a2.forward=false elseif v.KeyCode==Enum.KeyCode.S then a2.backward=false elseif v.KeyCode==Enum.KeyCode.A then a2.left=false elseif v.KeyCode==Enum.KeyCode.D then a2.right=false elseif v.KeyCode==Enum.KeyCode.E then a2.up=false elseif v.KeyCode==Enum.KeyCode.Q then a2.down=false elseif v.KeyCode==Enum.KeyCode.LeftShift then ac=false elseif v.KeyCode==Enum.KeyCode.LeftControl then ad=false elseif v.KeyCode==Enum.KeyCode.LeftAlt then ae=false end end))table.insert(_.conns,e.CharacterAdded:Connect(function()if _.enabled then task.wait(0.2)af()ag()end end))end;function setFreecam(y)if y==_.enabled then return end;_.enabled=y;af()if y then ag()end;pcall(function()a:Notify({Title="Freecam",Content=y and"Enabled"or"Disabled",Duration=1.25})end)end;local function al(am)local an=game.Players.LocalPlayer;local i=an.Character or an.CharacterAdded:Wait()local m=i:FindFirstChildOfClass("Humanoid")local k=j(i)if not(m and k)then return end;pcall(function()m.Sit=false end)k.CFrame=CFrame.new(am+Vector3.new(0,5,0))end;local function ao(ap)if not ap or ap==e then return end;local i=ap.Character or ap.CharacterAdded:Wait()local k=i:WaitForChild("HumanoidRootPart",5)if k then al(k.Position)else a:Notify({Title="Teleport",Content="Root "..ap.Name.." tidak ditemukan.",Duration=1.5})end end;local aq=Vector3.new(-1068.40857,1044.99792,487.82538)local ar=Vector3.new(-1682.80188,1081.27466,522.91455)local as=Vector3.new(623.3,1798.3,3433.2)local at=Vector3.new(757.7,2084.4,3811.5)local au=Vector3.new(-23468.3,6334.9,-6930.8)local av=Vector3.new(5137,7943,2510)local aw=Vector3.new(-984,3120,593)local ax=Vector3.new(-918,762.5,1925.5)local ay=Vector3.new(-2926.6,1404.5,-359.5)local az=Vector3.new(-1241.5,444.8,-3335.1)local aA=a:CreateWindow({Name="JAWIR ACADEMY | MOUNT SC",Icon=0,LoadingTitle="JAWIR ACADEMY | MOUNT SC",LoadingSubtitle="Made by JAWIR ACADEMY",ShowText="JAWIR ACADEMY",Theme="DarkBlue",ToggleUIKeybind="K",DisableRayfieldPrompts=true,DisableBuildWarnings=true,ConfigurationSaving={Enabled=false,FolderName=nil,FileName="JAWIR ACADEMY"},Discord={Enabled=false,Invite="noinvitelink",RememberJoins=true},KeySystem=false,KeySettings={Title="JAWIR ACADEMY | Key",Subtitle="Key System",Note="No method of obtaining the key is provided",FileName="Key",SaveKey=true,GrabKeyFromSite=false,Key={"Hello"}}})local aB=aA:CreateTab("🏠 Main",nil)local aC=aB:CreateSection("Walk And Jump Section")local aD=aB:CreateSlider({Name="Walk Speed Value",Range={1,100},Increment=1,Suffix="stud/s",CurrentValue=n,Callback=function(X)n=X;if o then local m=h()if m then m.WalkSpeed=n end end end})local aE=aB:CreateToggle({Name="Walk Speed",CurrentValue=false,Callback=function(X)o=X;local m=h()if m then if X then m.WalkSpeed=n else m.WalkSpeed=f.walk end end end})local aF=aB:CreateToggle({Name="Infinite Jump",CurrentValue=false,Callback=function(X)x(X)end})local aC=aB:CreateSection("Fly Section")local aG=aB:CreateSlider({Name="Jarak per Tap",Range={1,100},Increment=1,Suffix="stud/s",CurrentValue=z.verticalSpeed,Callback=function(X)z.verticalSpeed=X;a:Notify({Title="Fly",Content="Vertical Speed: "..tostring(X),Duration=0.8})end})local aH=aB:CreateSlider({Name="Durasi Tap",Range={0.10,1.50},Increment=0.05,Suffix="s",CurrentValue=z.pulseTime,Callback=function(X)z.pulseTime=X;a:Notify({Title="Fly",Content="Pulse Time: "..string.format("%.2f",X).."s",Duration=0.8})end})local aI=aB:CreateSlider({Name="Fly Speed",Range={5,100},Increment=1,Suffix="stud/s",CurrentValue=z.speed,Callback=function(X)z.speed=X;f.flySpeed=X;a:Notify({Title="Fly",Content="Horizontal Speed: "..tostring(X),Duration=0.8})end})local aF=aB:CreateToggle({Name="Fly",CurrentValue=false,Callback=function(X)setFly(X)end})local aC=aB:CreateSection("Cam & Coordinates Section")local aF=aB:CreateToggle({Name="Tampilkan Koordinat",CurrentValue=false,Callback=function(X)setShowCoordinates(X)end})local aJ=aB:CreateSlider({Name="Freecam Speed",Range={a6,a7},Increment=1,Suffix="stud/s",CurrentValue=a4,Callback=function(X)a4=X end})local aF=aB:CreateToggle({Name="Freecam (WASDQE)",CurrentValue=false,Callback=function(X)setFreecam(X)end})local aC=aB:CreateSection("Health Section")local aF=aB:CreateToggle({Name="God Mode",CurrentValue=false,Callback=function(X)setGodMode(X,true)end})local aK=aA:CreateTab("🚀 Teleport",nil)local aC=aK:CreateSection(" Custom Teleport Section ")local aL,aM,aN=0,0,0;local aO=aK:CreateInput({Name="X Coordinate",PlaceholderText="Masukkan X",RemoveTextAfterFocusLost=false,Callback=function(X)local aP=tonumber(X)if aP then aL=aP end end})local aQ=aK:CreateInput({Name="Y Coordinate",PlaceholderText="Masukkan Y",RemoveTextAfterFocusLost=false,Callback=function(X)local aP=tonumber(X)if aP then aM=aP end end})local aR=aK:CreateInput({Name="Z Coordinate",PlaceholderText="Masukkan Z",RemoveTextAfterFocusLost=false,Callback=function(X)local aP=tonumber(X)if aP then aN=aP end end})local aS=aK:CreateButton({Name="Teleport ke XYZ",Callback=function()if aL and aM and aN then al(Vector3.new(aL,aM,aN))a:Notify({Title="Teleport",Content=string.format("Teleport ke (%.2f, %.2f, %.2f)",aL,aM,aN),Duration=1.5})else a:Notify({Title="Teleport",Content="Isi koordinat dengan benar dulu!",Duration=1.5})end end})local aC=aK:CreateSection(" Mount Teleport Section ")local aS=aK:CreateButton({Name="Teleport Pos Akhir (Horeg)",Callback=function()al(aq)end})local aS=aK:CreateButton({Name="Teleport Puncak (Horeg)",Callback=function()al(ar)end})local aS=aK:CreateButton({Name="Teleport Pos Akhir (Atin)",Callback=function()al(as)end})local aS=aK:CreateButton({Name="Teleport Puncak (Atin)",Callback=function()al(at)end})local aS=aK:CreateButton({Name="Teleport Puncak (Sakhayang)",Callback=function()al(aw)end})local aS=aK:CreateButton({Name="Teleport Puncak (Lembayana)",Callback=function()al(au)end})local aS=aK:CreateButton({Name="Teleport Puncak (Sibuatan)",Callback=function()al(av)end})local aS=aK:CreateButton({Name="Teleport Puncak (Yareu)",Callback=function()al(ax)end})local aS=aK:CreateButton({Name="Teleport Puncak (Hauk)",Callback=function()al(ay)end})local aS=aK:CreateButton({Name="Teleport Puncak (Galunggung)",Callback=function()al(az)end})local aT=aA:CreateTab("👥 Players",nil)local aU={}local aV=nil;local aW=nil;local aX;local function j(i)return i:FindFirstChild("HumanoidRootPart")or i:FindFirstChild("Torso")or i:FindFirstChild("UpperTorso")end;local function ao(ap)if not ap or ap==e then return end;local i=ap.Character or ap.CharacterAdded:Wait()local k=i:WaitForChild("HumanoidRootPart",5)if k then al(k.Position)else a:Notify({Title="Teleport",Content="Root "..ap.Name.." tidak ditemukan.",Duration=1.5})end end;local function aY(aZ)if aZ==e then return string.format("%s (You) [%d]",aZ.Name,aZ.UserId)else return string.format("%s [%d]",aZ.Name,aZ.UserId)end end;local function a_()aU={}local b0={}for r,aZ in ipairs(b:GetPlayers())do local b1=aY(aZ)aU[b1]=aZ;table.insert(b0,b1)end;return b0 end;local function b2()if not aV then return nil end;local aZ=aU[aV]if not aZ then return nil end;local i=aZ.Character or aZ.CharacterAdded:Wait()if i then aW=aZ;return aZ end;return nil end;local function b3()local b0=a_()if aX then aX:Destroy()end;aX=aT:CreateDropdown({Name="Pilih Player",Options=b0,CurrentOption=b0[1]or nil,Callback=function(b1)if typeof(b1)=="table"then b1=b1[1]end;aV=b1;b2()end})end;local function b4()local b0=a_()if not aX then b3()return end;local b5=pcall(function()aX:SetOptions(b0)end)if not b5 then b3()return end;if#b0>0 then if not aV or not aU[aV]then aV=b0[1]end;b2()else aV=nil;aW=nil end end;b3()aT:CreateButton({Name="Refresh List",Callback=b4})b.PlayerAdded:Connect(function()task.delay(0.2,b4)end)b.PlayerRemoving:Connect(function()task.delay(0.2,b4)end)aT:CreateButton({Name="Teleport To Player",Callback=function()local ap=b2()if not ap then a:Notify({Title="Teleport",Content="Belum ada target player valid.",Duration=1.5})return end;ao(ap)a:Notify({Title="Teleport",Content="Teleport ke "..ap.Name,Duration=1.5})end})aT:CreateButton({Name="Spectate Player",Callback=function()local ap=b2()if not ap then a:Notify({Title="Spectate",Content="Belum ada target player valid.",Duration=1.5})return end;local i=ap.Character or ap.CharacterAdded:Wait()local k=i:WaitForChild("HumanoidRootPart",5)if k then local F=workspace.CurrentCamera;if F then F.CameraSubject=ap.Character:FindFirstChildOfClass("Humanoid")or k;F.CameraType=Enum.CameraType.Custom;a:Notify({Title="Spectate",Content="Sedang spectate "..ap.Name,Duration=1.5})end else a:Notify({Title="Spectate",Content="Root "..ap.Name.." tidak ditemukan.",Duration=1.5})end end})local b6=aA:CreateTab("🚗 Midnight Chasers",nil)local aC=b6:CreateSection("Main")local b7=workspace:FindFirstChild("NPCVehicles")local b8=b7 and(b7:FindFirstChild("Vehicles")or b7)local b9,ba;local function bb(bc)for r,bd in ipairs(bc:GetDescendants())do if bd:IsA("BasePart")then bd.LocalTransparencyModifier=1;bd.Transparency=1;bd.CanCollide=false;bd.CanTouch=false;bd.CanQuery=false;bd.Massless=true elseif bd:IsA("Decal")or bd:IsA("Texture")then bd.Transparency=1 elseif bd:IsA("Highlight")then bd.Enabled=false elseif bd:IsA("Beam")or bd:IsA("Trail")or bd:IsA("ParticleEmitter")then bd.Enabled=false elseif bd:IsA("BillboardGui")or bd:IsA("SurfaceGui")then bd.Enabled=false end end end;local function be()if not b8 then return end;bb(b8)b9=b8.DescendantAdded:Connect(function(bd)if bd:IsA("BasePart")then bd.LocalTransparencyModifier=1;bd.Transparency=1;bd.CanCollide=false;bd.CanTouch=false;bd.CanQuery=false;bd.Massless=true elseif bd:IsA("Decal")or bd:IsA("Texture")then bd.Transparency=1 elseif bd:IsA("Highlight")then bd.Enabled=false elseif bd:IsA("Beam")or bd:IsA("Trail")or bd:IsA("ParticleEmitter")then bd.Enabled=false elseif bd:IsA("BillboardGui")or bd:IsA("SurfaceGui")then bd.Enabled=false end end)ba=d.Heartbeat:Connect(function()for r,bf in ipairs(b8:GetDescendants())do if bf:IsA("BasePart")then bf.LocalTransparencyModifier=1;bf.Transparency=1;bf.CanCollide=false;bf.CanTouch=false;bf.CanQuery=false;bf.Massless=true end end end)end;local function bg()if b9 then b9:Disconnect()b9=nil end;if ba then ba:Disconnect()ba=nil end;if not b8 then return end;for r,bd in ipairs(b8:GetDescendants())do if bd:IsA("BasePart")then bd.LocalTransparencyModifier=0;bd.Transparency=0;bd.CanCollide=true;bd.CanTouch=true;bd.CanQuery=true;bd.Massless=false elseif bd:IsA("Decal")or bd:IsA("Texture")then bd.Transparency=0 elseif bd:IsA("Highlight")then bd.Enabled=true elseif bd:IsA("Beam")or bd:IsA("Trail")or bd:IsA("ParticleEmitter")then bd.Enabled=true elseif bd:IsA("BillboardGui")or bd:IsA("SurfaceGui")then bd.Enabled=true end end end;local aF=b6:CreateToggle({Name="Hilangkan Mobil NPC",CurrentValue=false,Callback=function(X)if X then be()a:Notify({Title="NPC Vehicles",Content="Semua mobil NPC berhasil dihilangkan (ghosted).",Duration=2})else bg()a:Notify({Title="NPC Vehicles",Content="Semua mobil NPC berhasil ditampilkan kembali.",Duration=2})end end})local bh=50;local bi=false;local bj=50;local function bk()for r,bd in pairs(workspace:GetDescendants())do if bd:IsA("Model")and bd.Name:find(e.Name)and bd:FindFirstChildWhichIsA("VehicleSeat")then return bd end end;return nil end;local function bl()if not bi then return end;local bm=bk()if bm then local bn=bm:FindFirstChildWhichIsA("VehicleSeat")if bn then if bn.MaxSpeed~=bh then bn.MaxSpeed=bh end end end end;local bo=b6:CreateSlider({Name="Car Speed",Range={5,500},Increment=1,Suffix="stud/s",CurrentValue=bh,Callback=function(X)bh=X;if bi then bl()a:Notify({Title="Car Speed",Content="Kecepatan mobil diset ke "..tostring(X),Duration=1})end end})local bp=b6:CreateToggle({Name="Car Speed Toggle",CurrentValue=false,Callback=function(X)bi=X;local bm=bk()if bm then local bn=bm:FindFirstChildWhichIsA("VehicleSeat")if bn then if X then bj=bn.MaxSpeed;bn.MaxSpeed=bh;a:Notify({Title="Car Speed",Content="Custom Car Speed Aktif",Duration=1.25})else bn.MaxSpeed=bj;a:Notify({Title="Car Speed",Content="Custom Car Speed Dimatikan",Duration=1.25})end end else a:Notify({Title="Car Speed",Content="Mobilmu tidak ditemukan!",Duration=2})end end})
+local Players        = game:GetService("Players")
+local UIS            = game:GetService("UserInputService")
+local RunService     = game:GetService("RunService")
+local LP             = Players.LocalPlayer
+
+local CFG = {
+    walk       = 16,
+    jump       = 50,
+    fly        = false,
+    flySpeed   = 20,
+    antiFall   = true,
+    flyKey     = Enum.KeyCode.F, -- toggle Fly
+    uiToggle   = Enum.KeyCode.K, -- toggle UI Rayfield
+}
+
+local function getChar()
+    return LP.Character or LP.CharacterAdded:Wait()
+end
+
+local function getHumanoid(char)
+    char = char or getChar()
+    return char:FindFirstChildOfClass("Humanoid")
+        or char:FindFirstChild("Humanoid")
+        or char:FindFirstChildWhichIsA("Humanoid", true)
+end
+
+local function getRoot(char)
+    if not char then return nil end
+    
+    -- coba cari root langsung
+    local root = char:FindFirstChild("HumanoidRootPart")
+        or char:FindFirstChild("LowerTorso")
+        or char:FindFirstChild("Torso")
+
+    -- kalau belum ketemu, tunggu sebentar (max 5 detik)
+    if not root then
+        root = char:WaitForChild("HumanoidRootPart", 5)
+            or char:FindFirstChild("LowerTorso")
+            or char:FindFirstChild("Torso")
+    end
+
+    -- fallback terakhir: ambil BasePart apapun
+    return root or char:FindFirstChildWhichIsA("BasePart")
+end
+
+local function applyMovement()
+    local hum = getHumanoid()
+    if hum then
+        hum.UseJumpPower = true
+        hum.WalkSpeed    = CFG.walk
+        hum.JumpPower    = CFG.jump
+    end
+end
+
+-- ====== Walk Speed ======
+local walkSpeedValue = CFG.walk
+local walkSpeedEnabled = false
+
+-- ====== Infinite Jump ======
+local InfJump = { enabled = false, conns = {} }
+
+local function ij_unbind()
+    for _,c in ipairs(InfJump.conns) do
+        pcall(function() c:Disconnect() end)
+    end
+    InfJump.conns = {}
+end
+
+local function ij_doJump()
+    local hum = getHumanoid()
+    if hum then
+        hum:ChangeState(Enum.HumanoidStateType.Jumping)
+        hum.Jump = true
+    end
+end
+
+local function ij_bind()
+    table.insert(InfJump.conns, UIS.JumpRequest:Connect(function() ij_doJump() end))
+    table.insert(InfJump.conns, UIS.InputBegan:Connect(function(input, gp)
+        if gp then return end
+        if input.KeyCode == Enum.KeyCode.Space then
+            ij_doJump()
+        end
+    end))
+    table.insert(InfJump.conns, LP.CharacterAdded:Connect(function()
+        task.wait(0.2)
+        if InfJump.enabled then
+            ij_unbind()
+            ij_bind()
+        end
+    end))
+end
+
+local function setInfiniteJump(on)
+    if on == InfJump.enabled then return end
+    InfJump.enabled = on
+    ij_unbind()
+    if on then ij_bind() end
+    pcall(function()
+        Rayfield:Notify({
+            Title = "Infinite Jump",
+            Content = on and "Enabled" or "Disabled",
+            Duration = 1.25
+        })
+    end)
+end
+
+
+-- ====== Fly System ======
+local Fly = {
+    enabled       = false,
+    speed         = CFG.flySpeed,
+    verticalSpeed = CFG.flySpeed,
+    conns         = {},
+    bodyGyro      = nil,
+    bodyVel       = nil,
+    ascend        = false,
+    descend       = false,
+    lastJumpTime  = 0,
+    dtapWindow    = 0.25,
+    pulseTime     = 0.45
+}
+
+local function fly_unbind()
+    for _, c in ipairs(Fly.conns) do
+        pcall(function() c:Disconnect() end)
+    end
+    Fly.conns = {}
+    if Fly.bodyGyro then Fly.bodyGyro:Destroy() end
+    if Fly.bodyVel  then Fly.bodyVel:Destroy()  end
+    Fly.bodyGyro, Fly.bodyVel = nil, nil
+    Fly.ascend, Fly.descend = false, false
+end
+
+local function fly_bind()
+    local char = getChar()
+    local root = getRoot(char)
+    if not root then return end
+
+    Fly.bodyGyro = Instance.new("BodyGyro")
+    Fly.bodyGyro.P = 9e4
+    Fly.bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+    Fly.bodyGyro.CFrame = root.CFrame
+    Fly.bodyGyro.Parent = root
+
+    Fly.bodyVel = Instance.new("BodyVelocity")
+    Fly.bodyVel.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+    Fly.bodyVel.Velocity = Vector3.zero
+    Fly.bodyVel.Parent = root
+
+    table.insert(Fly.conns, RunService.RenderStepped:Connect(function()
+        local hum = getHumanoid()
+        local r = getRoot()
+        if not hum or not r or not Fly.bodyGyro or not Fly.bodyVel then return end
+
+        local horizontal = hum.MoveDirection * Fly.speed
+        local vertical = Vector3.zero
+
+        if Fly.ascend then
+            vertical = Vector3.new(0,  Fly.verticalSpeed, 0)
+        elseif Fly.descend then
+            vertical = Vector3.new(0, -Fly.verticalSpeed, 0)
+        end
+
+        local cam = workspace.CurrentCamera
+        if cam then Fly.bodyGyro.CFrame = cam.CFrame end
+
+        local vel = horizontal + vertical
+
+        if CFG.antiFall and not Fly.ascend and not Fly.descend and horizontal.Magnitude < 1e-3 then
+            vel = Vector3.new(0, 0.05, 0) -- biar ga jatuh
+        end
+
+        Fly.bodyVel.Velocity = vel
+    end))
+
+    local function handleJumpTap()
+        local t = time() -- lebih aman daripada os.clock
+        if (t - Fly.lastJumpTime) <= Fly.dtapWindow then
+            Fly.lastJumpTime = 0
+            Fly.ascend  = false
+            Fly.descend = true
+            task.delay(Fly.pulseTime, function()
+                if Fly.descend then
+                    Fly.descend = false
+                end
+            end)
+            return
+        end
+
+        Fly.lastJumpTime = t
+        Fly.descend = false
+        Fly.ascend  = true
+        task.delay(Fly.pulseTime, function()
+            if Fly.ascend then
+                Fly.ascend = false
+            end
+        end)
+    end
+
+    table.insert(Fly.conns, UIS.JumpRequest:Connect(function()
+        if Fly.enabled then handleJumpTap() end
+    end))
+
+    table.insert(Fly.conns, LP.CharacterAdded:Connect(function()
+        if Fly.enabled then
+            task.wait(0.2)
+            fly_unbind()
+            fly_bind()
+        end
+    end))
+end
+
+function setFly(on)
+    if on == Fly.enabled then return end
+    Fly.enabled = on
+    fly_unbind()
+    if on then fly_bind() end
+    pcall(function()
+        Rayfield:Notify({
+            Title = "Fly",
+            Content = on and "Enabled" or "Disabled",
+            Duration = 1.25
+        })
+    end)
+end
+
+-- ====== God Mode dengan Damage Patch ======
+local God = {
+    enabled = false,
+    conns = {},
+    maxHP = 9e9,
+    hooks = {}
+}
+
+local function gm_disconnect()
+    for _, c in ipairs(God.conns) do pcall(function() c:Disconnect() end) end
+    God.conns = {}
+    God.hooks = {}
+end
+
+local function gm_patchHumanoid(hum)
+    if not hum then return end
+
+    pcall(function()
+        hum.BreakJointsOnDeath = false
+        hum.MaxHealth = God.maxHP
+        hum.Health = God.maxHP
+    end)
+
+    pcall(function()
+        hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+        hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+        hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+    end)
+
+    if hum.TakeDamage and not God.hooks["TakeDamage"] then
+        pcall(function()
+            God.hooks["TakeDamage"] = hookfunction(hum.TakeDamage, function(...)
+                if God.enabled then
+                    return
+                end
+                return God.hooks["TakeDamage"](...)
+            end)
+        end)
+    end
+
+    table.insert(God.conns, hum.StateChanged:Connect(function(_, new)
+        if God.enabled and new == Enum.HumanoidStateType.Dead then
+            task.defer(function()
+                pcall(function()
+                    hum:ChangeState(Enum.HumanoidStateType.Running)
+                    hum.Health = God.maxHP
+                end)
+            end)
+        end
+    end))
+
+    table.insert(God.conns, hum.HealthChanged:Connect(function(hp)
+        if God.enabled and hp < God.maxHP then
+            pcall(function()
+                hum.MaxHealth = God.maxHP
+                hum.Health = God.maxHP
+            end)
+        end
+    end))
+end
+
+local function gm_bind()
+    local char = LP.Character or LP.CharacterAdded:Wait()
+    local hum = char:FindFirstChildOfClass("Humanoid") or char:WaitForChild("Humanoid", 5)
+    gm_patchHumanoid(hum)
+
+    table.insert(God.conns, LP.CharacterAdded:Connect(function(nc)
+        gm_disconnect()
+        if God.enabled then
+            task.wait(0.2)
+            local nh = nc:FindFirstChildOfClass("Humanoid") or nc:WaitForChild("Humanoid", 5)
+            gm_patchHumanoid(nh)
+        end
+    end))
+end
+
+function setGodMode(on, hideHealthBar)
+    if on == God.enabled then return end
+    God.enabled = on
+    gm_disconnect()
+
+    pcall(function()
+        game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.Health, not hideHealthBar)
+    end)
+
+    if on then
+        gm_bind()
+        Rayfield:Notify({ Title="God Mode", Content="Enabled", Duration=1.25 })
+    else
+        Rayfield:Notify({ Title="God Mode", Content="Disabled", Duration=1.25 })
+    end
+end
+
+-- ====== Show Coordinates ======
+local coordGUI, coordFrame, coordLabel, copyButton
+local coordConn
+
+function setShowCoordinates(v)
+    if v then
+        -- kalau sudah ada, jangan buat ulang
+        if coordGUI then 
+            coordGUI.Enabled = true 
+            return 
+        end
+
+        -- buat GUI baru
+        coordGUI = Instance.new("ScreenGui")
+        coordGUI.Name = "CoordGUI"
+        coordGUI.ResetOnSpawn = false
+        coordGUI.Parent = LP:WaitForChild("PlayerGui")
+
+        coordFrame = Instance.new("Frame")
+        coordFrame.Size = UDim2.new(0, 250, 0, 100)
+        coordFrame.Position = UDim2.new(0, 20, 0, 100)
+        coordFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        coordFrame.BackgroundTransparency = 0.2
+        coordFrame.Parent = coordGUI
+
+        coordLabel = Instance.new("TextLabel")
+        coordLabel.Size = UDim2.new(1, -20, 0, 50)
+        coordLabel.Position = UDim2.new(0, 10, 0, 10)
+        coordLabel.BackgroundTransparency = 1
+        coordLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        coordLabel.Font = Enum.Font.SourceSans
+        coordLabel.TextSize = 20
+        coordLabel.Text = "Koordinat: "
+        coordLabel.TextXAlignment = Enum.TextXAlignment.Left
+        coordLabel.Parent = coordFrame
+
+        copyButton = Instance.new("TextButton")
+        copyButton.Size = UDim2.new(0, 80, 0, 30)
+        copyButton.Position = UDim2.new(0, 10, 0, 60)
+        copyButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+        copyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        copyButton.Font = Enum.Font.SourceSansBold
+        copyButton.TextSize = 18
+        copyButton.Text = "Copy"
+        copyButton.Parent = coordFrame
+
+        -- update label setiap frame
+        coordConn = RunService.RenderStepped:Connect(function()
+            local char = getChar()
+            local root = getRoot(char)
+            if root and coordLabel then
+                local pos = root.Position
+                coordLabel.Text = string.format("Koordinat: (%.1f, %.1f, %.1f)", pos.X, pos.Y, pos.Z)
+            end
+        end)
+
+        -- fungsi copy
+        copyButton.MouseButton1Click:Connect(function()
+            local char = getChar()
+            local root = getRoot(char)
+            if root then
+                local pos = root.Position
+                local coordString = string.format("%.1f, %.1f, %.1f", pos.X, pos.Y, pos.Z)
+                if setclipboard then
+                    setclipboard(coordString)
+                    Rayfield:Notify({
+                        Title = "Koordinat",
+                        Content = "Berhasil dicopy: " .. coordString,
+                        Duration = 1.25
+                    })
+                end
+            end
+        end)
+    else
+        if coordGUI then coordGUI.Enabled = false end
+        if coordConn then coordConn:Disconnect() coordConn = nil end
+    end
+end
+
+-- ===== Freecam =====
+local Freecam = { enabled = false, conns = {}, speed = 1 }
+local fcBodyGyro, fcBodyVel
+local fcKeys = { forward = false, backward = false, left = false, right = false, up = false, down = false }
+local fcSpeedSlider
+local fcSpeed = 10
+local fcSpeedInc = 5
+local fcSpeedMin = 5
+local fcSpeedMax = 100
+local fcSpeedDefault = 10
+local fcSpeedShiftMul = 3
+local fcSpeedCtrlMul  = 0.33
+local fcSpeedAltMul   = 0.5
+local fcShiftDown = false
+local fcCtrlDown  = false
+local fcAltDown   = false
+local function fc_unbind()
+    for _, c in ipairs(Freecam.conns) do
+        pcall(function() c:Disconnect() end)
+    end
+    Freecam.conns = {}
+    if fcBodyGyro then fcBodyGyro:Destroy() end
+    if fcBodyVel  then fcBodyVel:Destroy()  end
+    fcBodyGyro, fcBodyVel = nil, nil
+    fcKeys = { forward = false, backward = false, left = false, right = false, up = false, down = false }
+    fcShiftDown, fcCtrlDown, fcAltDown = false, false, false
+end
+local function fc_bind()
+    local char = getChar()
+    local root = getRoot(char)
+    if not root then return end
+
+    fcBodyGyro = Instance.new("BodyGyro")
+    fcBodyGyro.P = 9e4
+    fcBodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+    fcBodyGyro.CFrame = root.CFrame
+    fcBodyGyro.Parent = root
+
+    fcBodyVel = Instance.new("BodyVelocity")
+    fcBodyVel.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+    fcBodyVel.Velocity = Vector3.zero
+    fcBodyVel.Parent = root
+
+    table.insert(Freecam.conns, RunService.RenderStepped:Connect(function()
+        local hum = getHumanoid()
+        local r = getRoot()
+        if not hum or not r or not fcBodyGyro or not fcBodyVel then return end
+
+        local cam = workspace.CurrentCamera
+        if cam then fcBodyGyro.CFrame = cam.CFrame end
+
+        local speedMul = 1
+        if fcShiftDown then
+            speedMul = speedMul * fcSpeedShiftMul
+        end
+        if fcCtrlDown then
+            speedMul = speedMul * fcSpeedCtrlMul
+        end
+        if fcAltDown then
+            speedMul = speedMul * fcSpeedAltMul
+        end
+
+        local speed = fcSpeed * speedMul
+
+        local forwardVec = (cam and cam.CFrame.LookVector or Vector3.new(0,0,-1))
+        forwardVec = Vector3.new(forwardVec.X, 0, forwardVec.Z)
+        if forwardVec.Magnitude > 0 then
+            forwardVec = forwardVec.Unit
+        else
+            forwardVec = Vector3.new(0,0,-1)
+        end
+
+        local rightVec = (cam and cam.CFrame.RightVector or Vector3.new(1,0,0))
+        rightVec = Vector3.new(rightVec.X, 0, rightVec.Z)
+        if rightVec.Magnitude > 0 then
+            rightVec = rightVec.Unit
+        else
+            rightVec = Vector3.new(1,0,0)
+        end
+
+        local horizontal = Vector3.zero
+        if fcKeys.forward   then horizontal = horizontal + forwardVec end
+        if fcKeys.backward  then horizontal = horizontal - forwardVec end
+        if fcKeys.right     then horizontal = horizontal + rightVec   end
+        if fcKeys.left      then horizontal = horizontal - rightVec   end
+        horizontal = (horizontal.Magnitude > 0) and horizontal.Unit * speed or Vector3.zero
+        local vertical = Vector3.zero
+        if fcKeys.up        then vertical = vertical + Vector3.new(0, 1, 0) end
+        if fcKeys.down      then vertical = vertical - Vector3.new(0, 1, 0) end
+        vertical = (vertical.Magnitude > 0) and vertical.Unit * speed or Vector3.zero
+        local vel = horizontal + vertical
+        fcBodyVel.Velocity = vel
+    end))
+    table.insert(Freecam.conns, UIS.InputBegan:Connect(function(input, gp)
+        if gp then return end
+        if input.KeyCode == Enum.KeyCode.W then
+            fcKeys.forward = true
+        elseif input.KeyCode == Enum.KeyCode.S then
+            fcKeys.backward = true
+        elseif input.KeyCode == Enum.KeyCode.A then
+            fcKeys.left = true
+        elseif input.KeyCode == Enum.KeyCode.D then
+            fcKeys.right = true
+        elseif input.KeyCode == Enum.KeyCode.E then
+            fcKeys.up = true
+        elseif input.KeyCode == Enum.KeyCode.Q then
+            fcKeys.down = true
+        elseif input.KeyCode == Enum.KeyCode.LeftShift then
+            fcShiftDown = true
+        elseif input.KeyCode == Enum.KeyCode.LeftControl then
+            fcCtrlDown = true
+        elseif input.KeyCode == Enum.KeyCode.LeftAlt then
+            fcAltDown = true
+        end
+    end))
+    table.insert(Freecam.conns, UIS.InputEnded:Connect(function(input, gp)
+        if gp then return end
+        if input.KeyCode == Enum.KeyCode.W then
+            fcKeys.forward = false
+        elseif input.KeyCode == Enum.KeyCode.S then
+            fcKeys.backward = false
+        elseif input.KeyCode == Enum.KeyCode.A then
+            fcKeys.left = false
+        elseif input.KeyCode == Enum.KeyCode.D then
+            fcKeys.right = false
+        elseif input.KeyCode == Enum.KeyCode.E then
+            fcKeys.up = false
+        elseif input.KeyCode == Enum.KeyCode.Q then
+            fcKeys.down = false
+        elseif input.KeyCode == Enum.KeyCode.LeftShift then
+            fcShiftDown = false
+        elseif input.KeyCode == Enum.KeyCode.LeftControl then
+            fcCtrlDown = false
+        elseif input.KeyCode == Enum.KeyCode.LeftAlt then
+            fcAltDown = false
+        end
+    end))
+    table.insert(Freecam.conns, LP.CharacterAdded:Connect(function()
+        if Freecam.enabled then
+            task.wait(0.2)
+            fc_unbind()
+            fc_bind()
+        end
+    end))
+end
+function setFreecam(on)
+    if on == Freecam.enabled then return end
+    Freecam.enabled = on
+    fc_unbind()
+    if on then fc_bind() end
+    pcall(function()
+        Rayfield:Notify({
+            Title = "Freecam",
+            Content = on and "Enabled" or "Disabled",
+            Duration = 1.25
+        })
+    end)
+end
+
+-- util teleport aman
+local function tpTo(v3)
+    local plr  = game.Players.LocalPlayer
+    local char = plr.Character or plr.CharacterAdded:Wait()
+    local hum  = char:FindFirstChildOfClass("Humanoid")
+    local root = getRoot(char)
+    if not (hum and root) then return end
+
+    pcall(function() hum.Sit = false end)
+    root.CFrame = CFrame.new(v3 + Vector3.new(0, 5, 0))
+end
+
+-- teleport ke player
+local function tpToPlayer(target)
+    if not target or target == LP then return end
+    local char = target.Character or target.CharacterAdded:Wait()
+    local root = char:WaitForChild("HumanoidRootPart", 5)
+    if root then
+        tpTo(root.Position)
+    else
+        Rayfield:Notify({
+            Title = "Teleport",
+            Content = "Root " .. target.Name .. " tidak ditemukan.",
+            Duration = 1.5
+        })
+    end
+end
+
+
+-- === koordinat Puncak ===
+local POS_AKHIR_HOREG = Vector3.new(-1068.40857, 1044.99792, 487.82538)
+local PUNCAK_HOREG    = Vector3.new(-1682.80188, 1081.27466, 522.91455)
+local POS_AKHIR_ATIN = Vector3.new(623.3, 1798.3, 3433.2)
+local PUNCAK_ATIN = Vector3.new(757.7, 2084.4, 3811.5)
+local PUNCAK_LEMBAYANA = Vector3.new(-23468.3, 6334.9, -6930.8)
+local PUNCAK_SIBUATAN = Vector3.new(5137, 7943, 2510)
+local PUNCAK_SAKAHAYANG = Vector3.new(-984, 3120, 593)
+local PUNCAK_YAREU = Vector3.new(-918, 762.5, 1925.5)
+local PUNCAK_HAUK = Vector3.new(-2926.6, 1404.5, -359.5)
+local PUNCAK_GALUNGGUNG = Vector3.new(-1241.5, 444.8, -3335.1)
+
+-- ====== Windows ======
+local Window = Rayfield:CreateWindow({
+   Name = "JAWIR ACADEMY | MOUNT SC",
+   Icon = 0,
+   LoadingTitle = "JAWIR ACADEMY | MOUNT SC",
+   LoadingSubtitle = "Made by JAWIR ACADEMY",
+   ShowText = "JAWIR ACADEMY",
+   Theme = "DarkBlue",
+   ToggleUIKeybind = "K",
+   DisableRayfieldPrompts = true,
+   DisableBuildWarnings = true,
+   ConfigurationSaving = {
+      Enabled = false,
+      FolderName = nil,
+      FileName = "JAWIR ACADEMY"
+   },
+   Discord = {
+      Enabled = false,
+      Invite = "noinvitelink",
+      RememberJoins = true
+   },
+   KeySystem = false,
+   KeySettings = {
+      Title = "JAWIR ACADEMY | Key",
+      Subtitle = "Key System",
+      Note = "No method of obtaining the key is provided",
+      FileName = "Key",
+      SaveKey = true,
+      GrabKeyFromSite = false,
+      Key = {"Hello"}
+   }
+})
+
+local MainTab = Window:CreateTab("🏠 Main", nil)
+
+local Section = MainTab:CreateSection("Walk And Jump Section")
+
+local WalkSpeedSlider = MainTab:CreateSlider({
+    Name = "Walk Speed Value",
+    Range = {1, 100},
+    Increment = 1,
+    Suffix = "stud/s",
+    CurrentValue = walkSpeedValue,
+    Callback = function(v)
+        walkSpeedValue = v
+        if walkSpeedEnabled then
+            local hum = getHumanoid()
+            if hum then hum.WalkSpeed = walkSpeedValue end
+        end
+    end,
+})
+
+local ToggleWalkSpeed = MainTab:CreateToggle({
+   Name = "Walk Speed",
+   CurrentValue = false,
+   Callback = function(v)
+        walkSpeedEnabled = v
+        local hum = getHumanoid()
+        if hum then
+            if v then
+                hum.WalkSpeed = walkSpeedValue
+            else
+                hum.WalkSpeed = CFG.walk
+            end
+        end
+   end,
+})
+
+local Toggle = MainTab:CreateToggle({
+   Name = "Infinite Jump",
+   CurrentValue = false,
+   Callback = function(v)
+        setInfiniteJump(v)
+    end,
+})
+
+local Section = MainTab:CreateSection("Fly Section")
+
+local VerticalSlider = MainTab:CreateSlider({
+    Name = "Jarak per Tap",
+    Range = {1, 100},
+    Increment = 1,
+    Suffix = "stud/s",
+    CurrentValue = Fly.verticalSpeed,
+    Callback = function(v)
+        Fly.verticalSpeed = v
+        Rayfield:Notify({ Title = "Fly", Content = "Vertical Speed: "..tostring(v), Duration = 0.8 })
+    end,
+})
+
+local PulseSlider = MainTab:CreateSlider({
+    Name = "Durasi Tap",
+    Range = {0.10, 1.50},
+    Increment = 0.05,
+    Suffix = "s",
+    CurrentValue = Fly.pulseTime,
+    Callback = function(v)
+        Fly.pulseTime = v
+        Rayfield:Notify({ Title = "Fly", Content = "Pulse Time: "..string.format("%.2f", v).."s", Duration = 0.8 })
+    end,
+})
+
+local HSpeedSlider = MainTab:CreateSlider({
+    Name = "Fly Speed",
+    Range = {5, 100},
+    Increment = 1,
+    Suffix = "stud/s",
+    CurrentValue = Fly.speed,
+    Callback = function(v)
+        Fly.speed = v
+        CFG.flySpeed = v
+        Rayfield:Notify({ Title = "Fly", Content = "Horizontal Speed: "..tostring(v), Duration = 0.8 })
+    end,
+})
+
+local Toggle = MainTab:CreateToggle({
+   Name = "Fly",
+   CurrentValue = false,
+   Callback = function(v)
+        setFly(v)
+    end,
+})
+
+local Section = MainTab:CreateSection("Cam & Coordinates Section")
+
+local Toggle = MainTab:CreateToggle({
+   Name = "Tampilkan Koordinat",
+   CurrentValue = false,
+   Callback = function(v)
+        setShowCoordinates(v)
+    end,
+})
+
+local FCSpeedSlider = MainTab:CreateSlider({
+    Name = "Freecam Speed",
+    Range = {fcSpeedMin, fcSpeedMax},
+    Increment = 1,
+    Suffix = "stud/s",
+    CurrentValue = fcSpeed,
+    Callback = function(v)
+        fcSpeed = v
+    end,
+})
+
+local Toggle = MainTab:CreateToggle({
+   Name = "Freecam (WASDQE)",
+   CurrentValue = false,
+   Callback = function(v)
+        setFreecam(v)
+    end,
+})
+
+local Section = MainTab:CreateSection("Health Section")
+
+local Toggle = MainTab:CreateToggle({
+   Name = "God Mode",
+   CurrentValue = false,
+   Callback = function(v)
+        setGodMode(v, true)
+    end,
+})
+
+-- ====== Teleport Tab ======
+local TeleTab = Window:CreateTab("🚀 Teleport", nil)
+local Section = TeleTab:CreateSection(" Custom Teleport Section ")
+
+-- ====== Teleport Manual XYZ ======
+local tpX, tpY, tpZ = 0, 0, 0
+
+local XInput = TeleTab:CreateInput({
+    Name = "X Coordinate",
+    PlaceholderText = "Masukkan X",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(v)
+        local num = tonumber(v)
+        if num then tpX = num end
+    end,
+})
+
+local YInput = TeleTab:CreateInput({
+    Name = "Y Coordinate",
+    PlaceholderText = "Masukkan Y",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(v)
+        local num = tonumber(v)
+        if num then tpY = num end
+    end,
+})
+
+local ZInput = TeleTab:CreateInput({
+    Name = "Z Coordinate",
+    PlaceholderText = "Masukkan Z",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(v)
+        local num = tonumber(v)
+        if num then tpZ = num end
+    end,
+})
+
+local Button = TeleTab:CreateButton({
+    Name = "Teleport ke XYZ",
+    Callback = function()
+        if tpX and tpY and tpZ then
+            tpTo(Vector3.new(tpX, tpY, tpZ))
+            Rayfield:Notify({
+                Title = "Teleport",
+                Content = string.format("Teleport ke (%.2f, %.2f, %.2f)", tpX, tpY, tpZ),
+                Duration = 1.5
+            })
+        else
+            Rayfield:Notify({
+                Title = "Teleport",
+                Content = "Isi koordinat dengan benar dulu!",
+                Duration = 1.5
+            })
+        end
+    end,
+})
+
+-- ===== Teleport ke Lokasi Tertentu =====
+local Section = TeleTab:CreateSection(" Mount Teleport Section ")
+
+-- Horeg
+local Button = TeleTab:CreateButton({
+    Name = "Teleport Pos Akhir (Horeg)",
+    Callback = function()
+        tpTo(POS_AKHIR_HOREG)
+    end,
+})
+
+local Button = TeleTab:CreateButton({
+    Name = "Teleport Puncak (Horeg)",
+    Callback = function()
+        tpTo(PUNCAK_HOREG)
+    end,
+})
+
+-- Atin
+local Button = TeleTab:CreateButton({
+    Name = "Teleport Pos Akhir (Atin)",
+    Callback = function()
+        tpTo(POS_AKHIR_ATIN)
+    end,
+})
+
+local Button = TeleTab:CreateButton({
+    Name = "Teleport Puncak (Atin)",
+    Callback = function()
+        tpTo(PUNCAK_ATIN)
+    end,
+})
+
+-- Lokasi Lainnya
+local Button = TeleTab:CreateButton({
+    Name = "Teleport Puncak (Sakhayang)",
+    Callback = function()
+        tpTo(PUNCAK_SAKAHAYANG)
+    end,
+})
+
+local Button = TeleTab:CreateButton({
+    Name = "Teleport Puncak (Lembayana)",
+    Callback = function()
+        tpTo(PUNCAK_LEMBAYANA)
+    end,
+})
+
+local Button = TeleTab:CreateButton({
+    Name = "Teleport Puncak (Sibuatan)",
+    Callback = function()
+        tpTo(PUNCAK_SIBUATAN)
+    end,
+})
+
+local Button = TeleTab:CreateButton({
+    Name = "Teleport Puncak (Yareu)",
+    Callback = function()
+        tpTo(PUNCAK_YAREU)
+    end,
+})
+
+local Button = TeleTab:CreateButton({
+    Name = "Teleport Puncak (Hauk)",
+    Callback = function()
+        tpTo(PUNCAK_HAUK)
+    end,
+})
+
+local Button = TeleTab:CreateButton({
+    Name = "Teleport Puncak (Galunggung)",
+    Callback = function()
+        tpTo(PUNCAK_GALUNGGUNG)
+    end,
+})
+
+-- ====== Players Tab ======
+local PlayerTab = Window:CreateTab("👥 Players", nil)
+
+local optionToPlayer = {}
+local selectedLabel  = nil
+local selectedPlayer = nil
+local PlayerDropdown
+
+-- helper ambil root
+local function getRoot(char)
+    return char:FindFirstChild("HumanoidRootPart")
+        or char:FindFirstChild("Torso")
+        or char:FindFirstChild("UpperTorso")
+end
+
+-- teleport ke player
+local function tpToPlayer(target)
+    if not target or target == LP then return end
+    local char = target.Character or target.CharacterAdded:Wait()
+    local root = char:WaitForChild("HumanoidRootPart", 5)
+    if root then
+        tpTo(root.Position)
+    else
+        Rayfield:Notify({
+            Title = "Teleport",
+            Content = "Root " .. target.Name .. " tidak ditemukan.",
+            Duration = 1.5
+        })
+    end
+end
+
+-- bikin label untuk dropdown
+local function makeLabel(p)
+    if p == LP then
+        return string.format("%s (You) [%d]", p.Name, p.UserId)
+    else
+        return string.format("%s [%d]", p.Name, p.UserId)
+    end
+end
+
+-- build ulang list
+local function buildOptions()
+    optionToPlayer = {}
+    local opts = {}
+    for _, p in ipairs(Players:GetPlayers()) do
+        local label = makeLabel(p)
+        optionToPlayer[label] = p
+        table.insert(opts, label)
+    end
+    return opts
+end
+
+-- ambil player + langsung pastikan Character-nya
+local function getSelected()
+    if not selectedLabel then return nil end
+    local p = optionToPlayer[selectedLabel]
+    if not p then return nil end
+    local char = p.Character or p.CharacterAdded:Wait()
+    if char then
+        selectedPlayer = p
+        return p
+    end
+    return nil
+end
+
+-- rebuild dropdown (fallback kalau SetOptions gagal)
+local function rebuildDropdown()
+    local opts = buildOptions()
+    if PlayerDropdown then
+        PlayerDropdown:Destroy()
+    end
+    PlayerDropdown = PlayerTab:CreateDropdown({
+        Name = "Pilih Player",
+        Options = opts,
+        CurrentOption = opts[1] or nil,
+        Callback = function(label)
+            if typeof(label) == "table" then label = label[1] end
+            selectedLabel = label
+            getSelected()
+        end,
+    })
+end
+
+-- coba refresh list (pakai SetOptions, fallback ke rebuild)
+local function refreshDropdown()
+    local opts = buildOptions()
+
+    if not PlayerDropdown then
+        rebuildDropdown()
+        return
+    end
+
+    local ok = pcall(function()
+        PlayerDropdown:SetOptions(opts)
+    end)
+
+    if not ok then
+        rebuildDropdown()
+        return
+    end
+
+    -- pastikan CurrentOption tetap valid
+    if #opts > 0 then
+        if not selectedLabel or not optionToPlayer[selectedLabel] then
+            selectedLabel = opts[1]
+        end
+        getSelected()
+    else
+        selectedLabel = nil
+        selectedPlayer = nil
+    end
+end
+
+-- buat dropdown awal
+rebuildDropdown()
+
+-- tombol refresh manual
+PlayerTab:CreateButton({
+    Name = "Refresh List",
+    Callback = refreshDropdown,
+})
+
+-- auto refresh saat join/leave (pakai delay biar data ready)
+Players.PlayerAdded:Connect(function()
+    task.delay(0.2, refreshDropdown)
+end)
+
+Players.PlayerRemoving:Connect(function()
+    task.delay(0.2, refreshDropdown)
+end)
+
+-- tombol teleport
+PlayerTab:CreateButton({
+    Name = "Teleport To Player",
+    Callback = function()
+        local target = getSelected()
+        if not target then
+            Rayfield:Notify({
+                Title="Teleport",
+                Content="Belum ada target player valid.",
+                Duration=1.5
+            })
+            return
+        end
+        tpToPlayer(target)
+        Rayfield:Notify({
+            Title="Teleport",
+            Content="Teleport ke "..target.Name,
+            Duration=1.5
+        })
+    end,
+})
+
+-- tombol spectate
+PlayerTab:CreateButton({
+    Name = "Spectate Player",
+    Callback = function()
+        local target = getSelected()
+        if not target then
+            Rayfield:Notify({
+                Title="Spectate",
+                Content="Belum ada target player valid.",
+                Duration=1.5
+            })
+            return
+        end
+        local char = target.Character or target.CharacterAdded:Wait()
+        local root = char:WaitForChild("HumanoidRootPart", 5)
+        if root then
+            local cam = workspace.CurrentCamera
+            if cam then
+                cam.CameraSubject = target.Character:FindFirstChildOfClass("Humanoid") or root
+                cam.CameraType = Enum.CameraType.Custom
+                Rayfield:Notify({
+                    Title="Spectate",
+                    Content="Sedang spectate "..target.Name,
+                    Duration=1.5
+                })
+            end
+        else
+            Rayfield:Notify({
+                Title="Spectate",
+                Content="Root "..target.Name.." tidak ditemukan.",
+                Duration=1.5
+            })
+        end
+    end,
+})
+
+-- ====== Midnight Chasers ======
+local MidnightTab = Window:CreateTab("🚗 Midnight Chasers", nil)
+
+local Section = MidnightTab:CreateSection("Main")
+
+-- Variabel biar gampang ON/OFF
+local npcRoot = workspace:FindFirstChild("NPCVehicles")
+local vehiclesFolder = npcRoot and (npcRoot:FindFirstChild("Vehicles") or npcRoot)
+
+local ghostConn, enforceConn
+
+local function ghostifyInstance(inst)
+    for _, obj in ipairs(inst:GetDescendants()) do
+        if obj:IsA("BasePart") then
+            obj.LocalTransparencyModifier = 1
+            obj.Transparency = 1
+            obj.CanCollide = false
+            obj.CanTouch = false
+            obj.CanQuery = false
+            obj.Massless = true
+        elseif obj:IsA("Decal") or obj:IsA("Texture") then
+            obj.Transparency = 1
+        elseif obj:IsA("Highlight") then
+            obj.Enabled = false
+        elseif obj:IsA("Beam") or obj:IsA("Trail") or obj:IsA("ParticleEmitter") then
+            obj.Enabled = false
+        elseif obj:IsA("BillboardGui") or obj:IsA("SurfaceGui") then
+            obj.Enabled = false
+        end
+    end
+end
+
+local function ghostAll()
+    if not vehiclesFolder then return end
+    ghostifyInstance(vehiclesFolder)
+    ghostConn = vehiclesFolder.DescendantAdded:Connect(function(obj)
+        if obj:IsA("BasePart") then
+            obj.LocalTransparencyModifier = 1
+            obj.Transparency = 1
+            obj.CanCollide = false
+            obj.CanTouch = false
+            obj.CanQuery = false
+            obj.Massless = true
+        elseif obj:IsA("Decal") or obj:IsA("Texture") then
+            obj.Transparency = 1
+        elseif obj:IsA("Highlight") then
+            obj.Enabled = false
+        elseif obj:IsA("Beam") or obj:IsA("Trail") or obj:IsA("ParticleEmitter") then
+            obj.Enabled = false
+        elseif obj:IsA("BillboardGui") or obj:IsA("SurfaceGui") then
+            obj.Enabled = false
+        end
+    end)
+
+    enforceConn = RunService.Heartbeat:Connect(function()
+        for _, part in ipairs(vehiclesFolder:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.LocalTransparencyModifier = 1
+                part.Transparency = 1
+                part.CanCollide = false
+                part.CanTouch = false
+                part.CanQuery = false
+                part.Massless = true
+            end
+        end
+    end)
+end
+
+local function unghostAll()
+    if ghostConn then ghostConn:Disconnect() ghostConn = nil end
+    if enforceConn then enforceConn:Disconnect() enforceConn = nil end
+    if not vehiclesFolder then return end
+    for _, obj in ipairs(vehiclesFolder:GetDescendants()) do
+        if obj:IsA("BasePart") then
+            obj.LocalTransparencyModifier = 0
+            obj.Transparency = 0
+            obj.CanCollide = true
+            obj.CanTouch = true
+            obj.CanQuery = true
+            obj.Massless = false
+        elseif obj:IsA("Decal") or obj:IsA("Texture") then
+            obj.Transparency = 0
+        elseif obj:IsA("Highlight") then
+            obj.Enabled = true
+        elseif obj:IsA("Beam") or obj:IsA("Trail") or obj:IsA("ParticleEmitter") then
+            obj.Enabled = true
+        elseif obj:IsA("BillboardGui") or obj:IsA("SurfaceGui") then
+            obj.Enabled = true
+        end
+    end
+end
+
+local Toggle = MidnightTab:CreateToggle({
+   Name = "Hilangkan Mobil NPC",
+   CurrentValue = false,
+   Callback = function(v)
+        if v then
+            ghostAll()
+            Rayfield:Notify({
+                Title = "NPC Vehicles",
+                Content = "Semua mobil NPC berhasil dihilangkan (ghosted).",
+                Duration = 2
+            })
+        else
+            unghostAll()
+            Rayfield:Notify({
+                Title = "NPC Vehicles",
+                Content = "Semua mobil NPC berhasil ditampilkan kembali.",
+                Duration = 2
+            })
+        end
+    end,
+})
+
+-- ====== Variabel Car Speed ======
+local carSpeedValue = 50 -- default slider
+local carSpeedEnabled = false
+local defaultCarSpeed = 50
+
+-- fungsi ambil mobil player
+local function getPlayerCar()
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") and obj.Name:find(LP.Name) and obj:FindFirstChildWhichIsA("VehicleSeat") then
+            return obj
+        end
+    end
+    return nil
+end
+
+-- fungsi apply speed (smooth, cek dulu biar ga bentrok)
+local function applyCarSpeed()
+    if not carSpeedEnabled then return end
+    local car = getPlayerCar()
+    if car then
+        local seat = car:FindFirstChildWhichIsA("VehicleSeat")
+        if seat then
+            -- kalau beda baru update (biar ga spam nulis nilai yg sama -> bikin lag/patah2)
+            if seat.MaxSpeed ~= carSpeedValue then
+                seat.MaxSpeed = carSpeedValue
+            end
+        end
+    end
+end
+
+-- Slider buat atur nilai speed
+local CarSpeedSlider = MidnightTab:CreateSlider({
+    Name = "Car Speed",
+    Range = {5, 500}, -- diperbesar biar lebih fleksibel
+    Increment = 1,
+    Suffix = "stud/s",
+    CurrentValue = carSpeedValue,
+    Callback = function(v)
+        carSpeedValue = v
+        if carSpeedEnabled then
+            applyCarSpeed()
+            Rayfield:Notify({
+                Title = "Car Speed",
+                Content = "Kecepatan mobil diset ke " .. tostring(v),
+                Duration = 1
+            })
+        end
+    end,
+})
+
+-- Toggle buat aktif/nonaktif
+local CarSpeedToggle = MidnightTab:CreateToggle({
+   Name = "Car Speed Toggle",
+   CurrentValue = false,
+   Callback = function(v)
+        carSpeedEnabled = v
+        local car = getPlayerCar()
+        if car then
+            local seat = car:FindFirstChildWhichIsA("VehicleSeat")
+            if seat then
+                if v then
+                    defaultCarSpeed = seat.MaxSpeed
+                    seat.MaxSpeed = carSpeedValue
+                    Rayfield:Notify({
+                        Title = "Car Speed",
+                        Content = "Custom Car Speed Aktif",
+                        Duration = 1.25
+                    })
+                else
+                    seat.MaxSpeed = defaultCarSpeed
+                    Rayfield:Notify({
+                        Title = "Car Speed",
+                        Content = "Custom Car Speed Dimatikan",
+                        Duration = 1.25
+                    })
+                end
+            end
+        else
+            Rayfield:Notify({
+                Title = "Car Speed",
+                Content = "Mobilmu tidak ditemukan!",
+                Duration = 2
+            })
+        end
+   end,
+})
